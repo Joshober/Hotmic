@@ -12,10 +12,11 @@ A full-stack web application that converts audio to text in real-time and detect
 
 ## Tech Stack
 
-- **Backend**: Python with FastAPI, WebSockets
-- **Frontend**: React with TypeScript
+- **Backend**: Python with Flask, Flask-SocketIO
+- **Frontend**: React with TypeScript, Socket.IO client
 - **AI**: Local LLM via Ollama or OpenAI-compatible API for fallacy detection
 - **Speech-to-Text**: Web Speech API (browser)
+- **Tunneling**: Ngrok for public access (optional)
 
 ## Setup
 
@@ -61,12 +62,19 @@ cd frontend
 npm install
 ```
 
-3. Start the development server:
+3. (Optional) Create `.env` file for custom backend URL:
 ```bash
-npm start
+REACT_APP_WS_URL=http://localhost:8000
 ```
 
-The app will open at `http://localhost:3000`
+4. Start the development server:
+```bash
+npm start
+# or
+npm run dev
+```
+
+The app will run on `http://localhost:8001` (configured in package.json)
 
 ## Usage
 
@@ -80,7 +88,20 @@ The app will open at `http://localhost:3000`
 
 - `GET /` - API status
 - `GET /health` - Health check
-- `WebSocket /ws` - Real-time fallacy detection
+- `Socket.IO /socket.io/` - Real-time fallacy detection via Socket.IO
+
+## Quick Start Scripts
+
+Windows users can use the provided batch files:
+- `start-all.bat` - Start both backend and frontend in separate windows
+- `start-backend.bat` - Start backend only
+- `start-frontend.bat` - Start frontend only
+
+See `START.md` for more details.
+
+## Ngrok Setup (Optional)
+
+For public access via ngrok, see `NGROK-SETUP-COMPLETE.md`
 
 ## License
 

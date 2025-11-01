@@ -15,30 +15,26 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallacy-detection-secret-key')
 
 # CORS configuration for React frontend
-# Allow all ngrok domains and localhost
+# Allow all origins for ngrok compatibility (wildcards don't work in Flask-CORS)
 CORS(app, resources={
     r"/*": {
-        "origins": [
-            "http://localhost:8001", 
-            "http://localhost:3000", 
-            "http://localhost:5173",
-            "https://speak.ngrok.app",
-            "https://*.ngrok-free.dev",
-            "https://*.ngrok.io"
-        ],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "origins": "*",  # Allow all origins for ngrok compatibility
+        "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+        "allow_headers": ["Content-Type", "Authorization"]
     }
 })
 
 # Initialize SocketIO for WebSocket support (with async_mode='threading' for compatibility)
-# Allow all origins for ngrok compatibility (wildcards don't work, so we allow all)
+# Allow all origins for ngrok compatibility
 socketio = SocketIO(
     app, 
     cors_allowed_origins="*",  # Allow all origins for ngrok compatibility
     async_mode='threading',
     logger=True,
-    engineio_logger=True
+    engineio_logger=True,
+    allow_upgrades=True,
+    ping_timeout=60,
+    ping_interval=25
 )
 
 # Initialize fallacy detector

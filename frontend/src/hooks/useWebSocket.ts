@@ -31,8 +31,13 @@ export const useWebSocket = (
 
     try {
       const socket = io(WS_URL, {
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],  // Try polling first for ngrok compatibility
         autoConnect: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
+        timeout: 20000,
+        forceNew: false,
       });
 
       socket.on('connect', () => {

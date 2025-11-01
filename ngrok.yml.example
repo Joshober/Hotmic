@@ -5,7 +5,7 @@ agent:
 
 endpoints:
   - name: backend_endpoint
-    url: speak.ngrok.app  # Replace with your ngrok static domain
+    url: speak.ngrok.app  # Your static domain
     upstream:
       url: http://localhost:8000
 
