@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fallacy-detection-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - LOCAL_API_BASE=${LOCAL_API_BASE:-http://localhost:11434}
+      - LOCAL_MODEL_NAME=${LOCAL_MODEL_NAME:-llama3.2}
+      - USE_OLLAMA=${USE_OLLAMA:-true}
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app/app
+      - ./main.py:/app/main.py
+    networks:
+      - fallacy-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fallacy-detection-frontend
+    ports:
+      - "8001:80"
+    environment:
+      - REACT_APP_WS_URL=${REACT_APP_WS_URL:-http://localhost:8000}
+    depends_on:
+      - backend
+    networks:
+      - fallacy-network
+    restart: unless-stopped
+
+networks:
+  fallacy-network:
+    driver: bridge
+

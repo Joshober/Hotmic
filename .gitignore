@@ -64,6 +64,9 @@ Thumbs.db
 *.tmp
 *.bak
 
+# Docker
+.docker/
+
 # Test files (if you want to exclude)
 # tests/
 

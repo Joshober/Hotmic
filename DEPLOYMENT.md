@@ -2,19 +2,19 @@
 
 ## Pre-Deployment
 
-### ✅ Security
+### Security
 - [ ] `ngrok.yml` is in `.gitignore` (contains auth token)
 - [ ] No `.env` files are committed
 - [ ] All sensitive data is excluded
 - [ ] API keys and tokens are not in code
 
-### ✅ Cleanup
+### Cleanup
 - [ ] Removed `__pycache__/` directories
 - [ ] Removed duplicate directories
 - [ ] Removed test artifacts
 - [ ] Cleaned up temporary files
 
-### ✅ Documentation
+### Documentation
 - [ ] README.md is up to date
 - [ ] All setup instructions are correct
 - [ ] Example files provided (ngrok.yml.example, .env.example)
@@ -35,31 +35,40 @@ michackathondemo/
 ├── tests/                  # Test files
 ├── main.py                 # Flask backend entry point
 ├── requirements.txt        # Python dependencies
+├── Dockerfile              # Backend Docker image
+├── docker-compose.yml      # Docker Compose configuration
 ├── env.example            # Environment variable template
-├── ngrok.yml.example        # Ngrok config template
+├── ngrok.yml.example      # Ngrok config template
 ├── README.md              # Main documentation
-└── start-*.bat/ps1        # Startup scripts
+└── *.bat/ps1              # Startup scripts
 ```
 
 ## Required Files
 
 ### Must be committed:
-- ✅ Source code (`.py`, `.tsx`, `.ts`, `.css`)
-- ✅ Configuration templates (`.example` files)
-- ✅ Documentation (`.md` files)
-- ✅ Dependency files (`requirements.txt`, `package.json`)
-- ✅ Scripts (`start-*.bat`, `start-*.ps1`)
+- Source code (`.py`, `.tsx`, `.ts`, `.css`)
+- Configuration templates (`.example` files)
+- Documentation (`.md` files)
+- Dependency files (`requirements.txt`, `package.json`)
+- Scripts (`install.bat`, `install.ps1`, `run.bat`, `run.ps1`)
+- Docker configuration files (`Dockerfile`, `docker-compose.yml`)
 
 ### Must NOT be committed:
-- ❌ `ngrok.yml` (contains auth token)
-- ❌ `.env` files (may contain secrets)
-- ❌ `__pycache__/` directories
-- ❌ `node_modules/`
-- ❌ Build artifacts
+- `ngrok.yml` (contains auth token)
+- `.env` files (may contain secrets)
+- `__pycache__/` directories
+- `node_modules/`
+- Build artifacts
 
 ## Environment Setup
 
-Users should:
+Users should run the installation script:
+
+```batch
+install.bat
+```
+
+Or manually:
 1. Copy `env.example` to `.env` and configure
 2. Copy `ngrok.yml.example` to `ngrok.yml` and add their auth token
 3. Run `pip install -r requirements.txt`
@@ -67,16 +76,19 @@ Users should:
 
 ## Quick Start
 
+**Docker (Recommended)**:
 ```bash
-# Backend
-python main.py
+docker-compose up -d
+```
 
-# Frontend (in separate terminal)
-cd frontend
-npm run dev
+**Windows Scripts**:
+```batch
+run.bat
+```
 
-# Or use scripts
-start-all.bat
+**With Ngrok**:
+```batch
+run-ngrok.bat
 ```
 
 ## Notes
