@@ -1,0 +1,125 @@
+.fallacy-alert {
+  background: white;
+  border-left: 4px solid;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.fallacy-alert.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.fallacy-alert.severity-high {
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.fallacy-alert.severity-medium {
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.fallacy-alert.severity-low {
+  background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%);
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2);
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.alert-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.severity-icon {
+  font-size: 1.2rem;
+}
+
+.fallacy-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.severity-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dismiss-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0 8px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.dismiss-btn:hover {
+  color: #1f2937;
+}
+
+.alert-body {
+  color: #4b5563;
+}
+
+.fallacy-type {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 8px;
+  text-transform: capitalize;
+}
+
+.fallacy-explanation {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.fallacy-text {
+  background: #f9fafb;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border-left: 3px solid #e5e7eb;
+}
+
+.fallacy-text strong {
+  color: #374151;
+}
+
+.fallacy-confidence {
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-align: right;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+

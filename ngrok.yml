@@ -1,0 +1,11 @@
+version: 3
+
+agent:
+  authtoken: 33iaELUMFFFvmbxODvOPZdb9gtm_6ZgRzTW3LcbG1shh2J5hN
+
+endpoints:
+  - name: backend_endpoint
+    url: speak.ngrok.app
+    upstream:
+      url: http://localhost:8000
+
