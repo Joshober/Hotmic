@@ -106,3 +106,4 @@ class TestAPIEndpoints:
         
         # After exiting context, connection should be closed gracefully
 
+

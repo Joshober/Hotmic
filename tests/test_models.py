@@ -143,3 +143,4 @@ class TestPingMessage:
         with pytest.raises(ValidationError):
             PingMessage(type="pong")
 
+

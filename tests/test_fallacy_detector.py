@@ -194,3 +194,4 @@ class TestFallacyDetector:
             # Should handle error gracefully
             assert "error" in result or result["has_fallacies"] is False
 
+

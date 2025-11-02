@@ -73,24 +73,31 @@ IMPORTANT: You must respond ONLY with valid JSON, no other text."""
 
             if self.use_ollama:
                 # Use Ollama API
-                async with httpx.AsyncClient(timeout=60.0) as client:
-                    response = await client.post(
-                        f"{self.api_base}/api/chat",
-                        json={
-                            "model": self.model_name,
-                            "messages": [
-                                {"role": "system", "content": system_prompt},
-                                {"role": "user", "content": user_prompt}
-                            ],
-                            "stream": False,
-                            "options": {
-                                "temperature": 0.3,
+                try:
+                    async with httpx.AsyncClient(timeout=60.0) as client:
+                        response = await client.post(
+                            f"{self.api_base}/api/chat",
+                            json={
+                                "model": self.model_name,
+                                "messages": [
+                                    {"role": "system", "content": system_prompt},
+                                    {"role": "user", "content": user_prompt}
+                                ],
+                                "stream": False,
+                                "options": {
+                                    "temperature": 0.3,
+                                }
                             }
-                        }
-                    )
-                    response.raise_for_status()
-                    result_data = response.json()
-                    result_text = result_data.get("message", {}).get("content", "")
+                        )
+                        response.raise_for_status()
+                        result_data = response.json()
+                        result_text = result_data.get("message", {}).get("content", "")
+                except httpx.ConnectError:
+                    raise Exception(f"Could not connect to Ollama at {self.api_base}. Is Ollama running?")
+                except httpx.HTTPStatusError as e:
+                    raise Exception(f"Ollama API error: {e.response.status_code} - {e.response.text}")
+                except Exception as e:
+                    raise Exception(f"Error calling Ollama: {str(e)}")
             else:
                 # Use OpenAI-compatible API endpoint
                 async with httpx.AsyncClient(timeout=60.0) as client:
@@ -110,6 +117,10 @@ IMPORTANT: You must respond ONLY with valid JSON, no other text."""
                     result_data = response.json()
                     result_text = result_data.get("choices", [{}])[0].get("message", {}).get("content", "")
             
+            # Handle empty response
+            if not result_text or not result_text.strip():
+                raise Exception("Empty response from model. Ollama may not be running or the model may not be available.")
+            
             # Clean up the response - remove markdown code blocks if present
             result_text = result_text.strip()
             if result_text.startswith("```json"):
@@ -120,16 +131,27 @@ IMPORTANT: You must respond ONLY with valid JSON, no other text."""
                 result_text = result_text[:-3]
             result_text = result_text.strip()
             
-            detection_result = json.loads(result_text)
+            # Try to parse JSON
+            try:
+                detection_result = json.loads(result_text)
+            except json.JSONDecodeError as e:
+                raise Exception(f"Invalid JSON response from model: {str(e)}. Response: {result_text[:200]}")
             
             # Parse and structure the results
             fallacies = []
             for fallacy_data in detection_result.get("fallacies", []):
+                # Safely convert confidence to float
+                confidence_val = fallacy_data.get("confidence", 0.0)
+                try:
+                    confidence = float(confidence_val) if confidence_val != "" and confidence_val is not None else 0.0
+                except (ValueError, TypeError):
+                    confidence = 0.0
+                
                 fallacy = Fallacy(
                     type=fallacy_data.get("type", "unknown"),
                     name=fallacy_data.get("name", "Unknown Fallacy"),
                     severity=fallacy_data.get("severity", "low"),
-                    confidence=float(fallacy_data.get("confidence", 0.0)),
+                    confidence=confidence,
                     explanation=fallacy_data.get("explanation", ""),
                     text_span=fallacy_data.get("text_span", ""),
                     start_index=fallacy_data.get("start_index"),
@@ -137,10 +159,17 @@ IMPORTANT: You must respond ONLY with valid JSON, no other text."""
                 )
                 fallacies.append(fallacy)
             
+            # Safely convert overall confidence to float
+            overall_confidence_val = detection_result.get("confidence", 0.0)
+            try:
+                overall_confidence = float(overall_confidence_val) if overall_confidence_val != "" and overall_confidence_val is not None else 0.0
+            except (ValueError, TypeError):
+                overall_confidence = 0.0
+            
             return {
                 "has_fallacies": detection_result.get("has_fallacies", False),
                 "fallacies": fallacies,
-                "confidence": float(detection_result.get("confidence", 0.0)),
+                "confidence": overall_confidence,
                 "analysis": detection_result.get("analysis", "")
             }
             
