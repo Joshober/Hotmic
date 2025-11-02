@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useWebSocket } from './hooks/useWebSocket';
 import Navigation from './components/Navigation';
@@ -10,7 +10,7 @@ import './App.css';
 function App() {
   const [isConnected, setIsConnected] = useState(false);
 
-  const handleWebSocketError = React.useCallback((error: Event) => {
+  const handleWebSocketError = useCallback((error: Event) => {
     console.error('WebSocket error:', error);
     setIsConnected(false);
   }, []);
