@@ -1,113 +1,127 @@
 .dashboard {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--gray-200);
+  margin-bottom: var(--spacing-xl);
 }
 
 .dashboard-header {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .dashboard-header h2 {
   margin: 0;
-  color: #333;
+  color: var(--gray-900);
   font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 
 .stats-overview {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
 }
 
 .stat-card {
-  padding: 20px;
-  border-radius: 12px;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  transition: all var(--transition-base);
+  background: white;
 }
 
 .stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-card.total {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
   color: white;
+  border: none;
 }
 
 .stat-card.high {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border-color: #fecaca;
 }
 
 .stat-card.medium {
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   color: #92400e;
+  border-color: #fde68a;
 }
 
 .stat-card.low {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+  background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
   color: #78350f;
+  border-color: #fef08a;
 }
 
 .stat-value {
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
+  line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   opacity: 0.9;
 }
 
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
+  gap: var(--spacing-xl);
 }
 
 .chart-container {
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  padding: var(--spacing-lg);
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
 }
 
 .chart-container h3 {
-  margin: 0 0 16px 0;
-  color: #333;
-  font-size: 1.1rem;
+  margin: 0 0 var(--spacing-lg) 0;
+  color: var(--gray-900);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 
 /* Speaker Leaderboard Styles */
 .speaker-leaderboard {
-  margin-bottom: 32px;
-  padding: 24px;
+  margin-bottom: var(--spacing-2xl);
+  padding: var(--spacing-xl);
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-radius: 12px;
-  border: 2px solid #f59e0b;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-xl);
+  border: 2px solid var(--warning);
+  box-shadow: var(--shadow-md);
 }
 
 .leaderboard-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .leaderboard-header h3 {
-  margin: 0 0 8px 0;
+  margin: 0 0 var(--spacing-sm) 0;
   color: #92400e;
   font-size: 1.5rem;
   font-weight: 700;
+  letter-spacing: -0.025em;
 }
 
 .leaderboard-subtitle {
@@ -119,31 +133,32 @@
 .leaderboard-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .leaderboard-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  transition: all var(--transition-base);
   position: relative;
   overflow: hidden;
 }
 
 .leaderboard-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .leaderboard-item.top-speaker {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border: 2px solid #ef4444;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  border: 2px solid var(--severity-high);
+  box-shadow: var(--shadow-lg);
 }
 
 .leaderboard-rank {
@@ -180,30 +195,31 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .speaker-name {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #333;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
   text-transform: capitalize;
+  letter-spacing: -0.025em;
 }
 
 .leaderboard-item.top-speaker .speaker-name {
   color: #dc2626;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
 }
 
 .speaker-stats {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
   align-items: center;
   flex-wrap: wrap;
 }
 
 .total-count {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #78350f;
 }
@@ -213,8 +229,8 @@
 }
 
 .percentage {
-  font-size: 0.9rem;
-  color: #6b7280;
+  font-size: 0.875rem;
+  color: var(--gray-500);
 }
 
 .severity-breakdown {
@@ -224,9 +240,9 @@
 }
 
 .severity-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -249,16 +265,16 @@
 .leaderboard-bar {
   width: 100px;
   height: 8px;
-  background: #e5e7eb;
-  border-radius: 4px;
+  background: var(--gray-200);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   position: relative;
 }
 
 .bar-fill {
   height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
+  border-radius: var(--radius-sm);
+  transition: width var(--transition-slow);
   min-width: 2px;
 }
 

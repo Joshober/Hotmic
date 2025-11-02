@@ -1,0 +1,166 @@
+.navigation {
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.nav-logo {
+  text-decoration: none;
+  color: var(--gray-900);
+  flex-shrink: 0;
+}
+
+.nav-logo h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -0.025em;
+}
+
+.nav-links {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--gray-600);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.nav-link:hover {
+  color: var(--primary-700);
+  background: var(--primary-50);
+}
+
+.nav-link.active {
+  color: var(--primary-700);
+  background: var(--primary-100);
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: var(--primary-600);
+  border-radius: 50%;
+}
+
+.nav-icon {
+  font-size: 1.125rem;
+}
+
+.nav-text {
+  white-space: nowrap;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all var(--transition-base);
+}
+
+.status-dot.connected {
+  background-color: var(--success);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  animation: pulse-dot 2s infinite;
+}
+
+.status-dot.disconnected {
+  background-color: var(--error);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.status-text {
+  white-space: nowrap;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+
+  .nav-logo h1 {
+    font-size: 1.25rem;
+  }
+
+  .nav-links {
+    order: 3;
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .nav-text {
+    font-size: 0.875rem;
+  }
+
+  .status-text {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navigation {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .nav-logo h1 {
+    font-size: 1.125rem;
+  }
+
+  .nav-icon {
+    font-size: 1rem;
+  }
+}

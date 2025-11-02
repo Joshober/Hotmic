@@ -1,0 +1,129 @@
+.analysis-page {
+  flex: 1;
+  padding: var(--spacing-xl);
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.analysis-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.analysis-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+}
+
+.left-panel,
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.alerts-panel {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--gray-200);
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.alerts-panel h2 {
+  margin: 0 0 var(--spacing-lg) 0;
+  color: var(--gray-900);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.alerts-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) var(--gray-100);
+}
+
+.alerts-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.alerts-container::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: var(--radius-sm);
+}
+
+.alerts-container::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: var(--radius-sm);
+}
+
+.alerts-container::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+.no-alerts {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  color: var(--gray-400);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.clear-all {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-lg);
+}
+
+.btn-clear {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--error);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-base);
+}
+
+.btn-clear:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  background: #dc2626;
+}
+
+.btn-clear:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 1024px) {
+  .analysis-main {
+    grid-template-columns: 1fr;
+  }
+  
+  .left-panel,
+  .right-panel {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .analysis-page {
+    padding: var(--spacing-lg);
+  }
+  
+  .analysis-main {
+    gap: var(--spacing-lg);
+  }
+}
