@@ -3,16 +3,20 @@ import { io, Socket } from 'socket.io-client';
 import { FallacyDetection } from '../types';
 
 // Determine backend URL based on environment
-// If accessed via ngrok frontend URL, use backend ngrok URL
-// Otherwise use localhost or env variable
+// Prioritize environment variable, then check if frontend is accessed via ngrok
+// Otherwise default to ngrok backend URL (public/live backend)
 const getBackendUrl = () => {
+  // Always check environment variable first
+  if (process.env.REACT_APP_WS_URL) {
+    return process.env.REACT_APP_WS_URL;
+  }
   // Check if frontend is accessed via ngrok
   if (window.location.hostname.includes('ngrok-free.dev') || window.location.hostname.includes('ngrok.io')) {
     // Frontend is on ngrok, use backend ngrok URL
-    return process.env.REACT_APP_WS_URL || 'https://speak.ngrok.app';
+    return 'https://speak.ngrok.app';
   }
-  // Frontend is on localhost, use env var or localhost
-  return process.env.REACT_APP_WS_URL || 'http://localhost:8000';
+  // Default to ngrok backend URL (public/live backend)
+  return 'https://speak.ngrok.app';
 };
 
 const WS_URL = getBackendUrl();

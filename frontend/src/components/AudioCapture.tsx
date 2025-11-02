@@ -13,6 +13,10 @@ const AudioCapture: React.FC<AudioCaptureProps> = ({ onTranscript, onError }) =>
   const [errorMessage, setErrorMessage] = useState<string>('');
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
+  const finalTranscriptRef = useRef('');
+  const lastInterimRef = useRef('');
+  const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isRestartingRef = useRef(false);
 
   useEffect(() => {
     // Check for Web Speech API support
@@ -24,21 +28,31 @@ const AudioCapture: React.FC<AudioCaptureProps> = ({ onTranscript, onError }) =>
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
+      // Increase max alternatives for better recognition during pauses
+      if ('maxAlternatives' in recognition) {
+        (recognition as any).maxAlternatives = 1;
+      }
 
       recognition.onstart = () => {
         console.log('Speech recognition started');
+        isRestartingRef.current = false;
         setErrorMessage('');
+        // Clear any pending restart timeout
+        if (restartTimeoutRef.current) {
+          clearTimeout(restartTimeoutRef.current);
+          restartTimeoutRef.current = null;
+        }
       };
 
       recognition.onresult = (event: any) => {
         try {
           let interimTranscript = '';
-          let finalTranscript = '';
 
           if (!event.results || event.results.length === 0) {
             return;
           }
 
+          // Process all results from the last resultIndex
           for (let i = event.resultIndex; i < event.results.length; i++) {
             if (!event.results[i] || !event.results[i][0]) {
               continue;
@@ -46,23 +60,33 @@ const AudioCapture: React.FC<AudioCaptureProps> = ({ onTranscript, onError }) =>
             
             const transcript = event.results[i][0].transcript || '';
             if (event.results[i].isFinal && transcript.trim()) {
-              finalTranscript += transcript + ' ';
-            } else if (!event.results[i].isFinal) {
+              // Add to accumulated final transcript
+              finalTranscriptRef.current += transcript + ' ';
+              // Clear interim when we get final results
+              lastInterimRef.current = '';
+            } else {
+              // Keep interim transcript for this event
               interimTranscript += transcript;
             }
           }
 
-          // Combine final and interim, but prioritize final results
-          const fullTranscript = finalTranscript.trim() || interimTranscript.trim();
+          // Save last interim result to preserve during pauses
+          if (interimTranscript) {
+            lastInterimRef.current = interimTranscript;
+          }
+
+          // Combine accumulated final transcript with current interim results
+          const fullTranscript = finalTranscriptRef.current + interimTranscript;
           
           // Only update if we have meaningful content
-          if (fullTranscript) {
+          if (fullTranscript.trim()) {
             setTranscript(fullTranscript);
             
-            // Only send final results (not interim) to parent to avoid spam
-            // Final results are sent on natural pauses
-            if (finalTranscript.trim() && finalTranscript.trim().length >= 5) {
-              onTranscript(finalTranscript.trim());
+            // Send the full accumulated transcript (final + interim) to parent for live updates
+            // This ensures parent always gets the complete transcript including interim results
+            const trimmedTranscript = fullTranscript.trim();
+            if (trimmedTranscript.length >= 5) {
+              onTranscript(trimmedTranscript);
             }
           }
         } catch (error) {
@@ -122,26 +146,58 @@ const AudioCapture: React.FC<AudioCaptureProps> = ({ onTranscript, onError }) =>
       };
 
       recognition.onend = () => {
-        // Use ref to check if we should still be listening
-        if (isListeningRef.current && recognitionRef.current) {
-          // Add a small delay before restarting to prevent rapid restart loops
-          setTimeout(() => {
+        console.log('Speech recognition ended (pause or natural stop), isListening:', isListeningRef.current);
+        
+        // Preserve interim results during pause - show last interim result in transcript
+        if (lastInterimRef.current && isListeningRef.current) {
+          const fullTranscript = finalTranscriptRef.current + lastInterimRef.current;
+          setTranscript(fullTranscript);
+        }
+        
+        // Use ref to avoid stale closure
+        if (isListeningRef.current && !isRestartingRef.current) {
+          // Longer delay to handle natural pauses in speech (500ms)
+          // This prevents rapid restarts during brief pauses
+          isRestartingRef.current = true;
+          
+          restartTimeoutRef.current = setTimeout(() => {
             if (isListeningRef.current && recognitionRef.current) {
               try {
                 recognitionRef.current.start();
+                console.log('Restarted speech recognition after pause');
+                isRestartingRef.current = false;
               } catch (e: any) {
-                // If we get an error starting (e.g., already started), ignore it
-                if (e.name !== 'InvalidStateError' && e.message?.includes('already')) {
+                // If it's already started, that's fine - ignore the error
+                if (e.message && !e.message.includes('already started')) {
                   console.error('Error restarting recognition:', e);
-                }
-                // Only stop if it's a real error
-                if (e.name === 'NotAllowedError') {
-                  setIsListening(false);
-                  isListeningRef.current = false;
+                  isRestartingRef.current = false;
+                  // Only stop if it's a real error
+                  if (e.name === 'NotAllowedError') {
+                    setIsListening(false);
+                    isListeningRef.current = false;
+                  }
+                  // Try again after a longer delay if it wasn't already started
+                  if (isListeningRef.current) {
+                    setTimeout(() => {
+                      if (isListeningRef.current && recognitionRef.current) {
+                        try {
+                          recognitionRef.current.start();
+                          console.log('Restarted speech recognition (retry)');
+                        } catch (e2) {
+                          console.error('Error on second restart attempt:', e2);
+                          isRestartingRef.current = false;
+                        }
+                      }
+                    }, 300);
+                  }
+                } else {
+                  isRestartingRef.current = false;
                 }
               }
+            } else {
+              isRestartingRef.current = false;
             }
-          }, 100); // Small delay to prevent restart loops
+          }, 500);
         }
       };
 
@@ -165,8 +221,17 @@ const AudioCapture: React.FC<AudioCaptureProps> = ({ onTranscript, onError }) =>
         recognitionRef.current = null;
       }
       isListeningRef.current = false;
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
+      }
     };
   }, [onTranscript, onError]);
+
+  // Sync ref with state
+  useEffect(() => {
+    isListeningRef.current = isListening;
+  }, [isListening]);
 
   const startListening = async () => {
     if (!recognitionRef.current) {
@@ -193,6 +258,7 @@ const AudioCapture: React.FC<AudioCaptureProps> = ({ onTranscript, onError }) =>
         setIsListening(true);
         isListeningRef.current = true;
         setErrorMessage('');
+        console.log('Starting speech recognition...');
       } catch (e: any) {
         console.error('Error starting recognition:', e);
         const msg = e.message || 'Failed to start speech recognition. Please try again.';
@@ -208,10 +274,17 @@ const AudioCapture: React.FC<AudioCaptureProps> = ({ onTranscript, onError }) =>
 
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
+      // Clear any pending restart timeout
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
+      }
+      isRestartingRef.current = false;
       try {
         recognitionRef.current.stop();
         setIsListening(false);
         isListeningRef.current = false;
+        console.log('Stopped speech recognition');
       } catch (e) {
         console.error('Error stopping recognition:', e);
       }
@@ -220,6 +293,9 @@ const AudioCapture: React.FC<AudioCaptureProps> = ({ onTranscript, onError }) =>
 
   const clearTranscript = () => {
     setTranscript('');
+    finalTranscriptRef.current = '';
+    lastInterimRef.current = '';
+    onTranscript('');
   };
 
   if (!isSupported) {
