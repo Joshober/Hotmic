@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import './App.css';
 import AudioCapture from './components/AudioCapture';
+import Mp3Import from './components/Mp3Import';
 import VisualFeedback from './components/VisualFeedback';
 import FallacyAlert from './components/FallacyAlert';
 import Dashboard from './components/Dashboard';
@@ -15,6 +16,7 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [currentSpeaker, setCurrentSpeaker] = useState('');
   const [speakers, setSpeakers] = useState<string[]>(['Speaker 1', 'Speaker 2']);
+  const [inputMode, setInputMode] = useState<'live' | 'file'>('live');
 
   const handleTranscript = useCallback((text: string) => {
     setTranscript(text);
@@ -163,10 +165,32 @@ function App() {
               onSpeakerChange={handleSpeakerChange}
               onAddSpeaker={handleAddSpeaker}
             />
-            <AudioCapture
-              onTranscript={handleTranscript}
-              onError={(error) => console.error('Audio capture error:', error)}
-            />
+            <div className="input-mode-selector">
+              <button 
+                className={`mode-btn ${inputMode === 'live' ? 'active' : ''}`}
+                onClick={() => setInputMode('live')}
+              >
+                Live Recording
+              </button>
+              <button 
+                className={`mode-btn ${inputMode === 'file' ? 'active' : ''}`}
+                onClick={() => setInputMode('file')}
+              >
+                Import Audio
+              </button>
+            </div>
+            
+            {inputMode === 'live' ? (
+              <AudioCapture
+                onTranscript={handleTranscript}
+                onError={(error) => console.error('Audio capture error:', error)}
+              />
+            ) : (
+              <Mp3Import
+                onTranscript={handleTranscript}
+                onError={(error) => console.error('MP3 import error:', error)}
+              />
+            )}
             
             <VisualFeedback
               text={transcript}
