@@ -180,6 +180,45 @@ body {
   transform: translateY(0);
 }
 
+/* Input Mode Selector */
+.input-mode-selector {
+  display: flex;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.mode-btn:hover {
+  color: #495057;
+  background: rgba(0, 123, 255, 0.1);
+}
+
+.mode-btn.active {
+  background: #007bff;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.mode-btn.active:hover {
+  background: #0056b3;
+  color: white;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .main-content {
