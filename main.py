@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, disconnect
 from dotenv import load_dotenv
@@ -40,15 +40,32 @@ socketio = SocketIO(
 # Initialize fallacy detector
 fallacy_detector = FallacyDetector()
 
+# Create API blueprint with /api prefix
+api = Blueprint('api', __name__)
 
-@app.route("/")
+
+@api.route("/")
 def root():
     return jsonify({"message": "Real-time Fallacy Detection API is running"})
 
 
-@app.route("/health")
+@api.route("/health")
 def health():
     return jsonify({"status": "healthy"})
+
+
+# Register API blueprint with /api prefix
+app.register_blueprint(api, url_prefix='/api')
+
+# Root route (no prefix) - for info
+@app.route("/")
+def root_info():
+    return jsonify({
+        "message": "Real-time Fallacy Detection API",
+        "api": "/api",
+        "health": "/api/health",
+        "websocket": "/socket.io/"
+    })
 
 
 @socketio.on('connect')

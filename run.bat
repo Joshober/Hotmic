@@ -1,7 +1,7 @@
 @echo off
-title Real-Time Fallacy Detection - Running All Services
+title Real-Time Fallacy Detection - Starting Services
 echo ================================================
-echo  Starting All Services
+echo  Starting Services
 echo ================================================
 echo.
 
@@ -14,28 +14,40 @@ if not exist .env (
     copy env.example .env >nul
 )
 
-echo Starting services in separate windows...
+REM Check if ngrok.yml exists
+if not exist ngrok.yml (
+    echo ERROR: ngrok.yml not found
+    echo Please copy ngrok.yml.example to ngrok.yml and configure it
+    echo.
+    pause
+    exit /b 1
+)
+
+echo Starting services...
 echo.
 
+REM Start Ngrok Backend Tunnel
+echo [1/3] Starting Ngrok Backend Tunnel...
+echo Reading ngrok endpoint from ngrok.yml...
+start "Ngrok Backend" cmd /k "cd /d %~dp0 && echo === Ngrok Backend Tunnel === && echo Tunnel -^> http://localhost:8000 && echo. && ngrok start --config ngrok.yml app_endpoint"
+timeout /t 3 /nobreak >nul
+
 REM Start Backend
-echo [1/3] Starting Flask Backend (Port 8000)...
-start "Flask Backend - Port 8000" cmd /k "cd /d %~dp0 && echo === Flask Backend === && echo Port: 8000 && echo. && python main.py"
+echo [2/3] Starting Flask Backend (Port 8000)...
+start "Flask Backend" cmd /k "cd /d %~dp0 && echo === Flask Backend === && echo Port: 8000 && echo. && python main.py"
 timeout /t 3 /nobreak >nul
 
 REM Start Frontend
-echo [2/3] Starting React Frontend (Port 8001)...
-start "React Frontend - Port 8001" cmd /k "cd /d %~dp0frontend && echo === React Frontend === && echo Port: 8001 && echo Connecting to: http://localhost:8000 && echo. && npm run dev"
+echo [3/3] Starting React Frontend (Port 8001)...
+start "React Frontend" cmd /k "cd /d %~dp0frontend && echo === React Frontend === && echo Port: 8001 && echo. && npm run dev"
 timeout /t 2 /nobreak >nul
 
-echo [3/3] All services started!
 echo.
-echo Two windows have opened:
-echo   1. Flask Backend - http://localhost:8000
-echo   2. React Frontend - http://localhost:8001
+echo Services started!
 echo.
-echo Open http://localhost:8001 in your browser to use the app.
+echo Backend:  Check ngrok tunnel URL (via ngrok)
+echo Frontend: http://localhost:8001
 echo.
-echo Press Ctrl+C in each window to stop the services.
-echo.
+echo Press Ctrl+C in each window to stop.
 pause
 

@@ -6,11 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fallacy-detection-backend
-    ports:
-      - "8000:8000"
     environment:
       - PORT=8000
-      - LOCAL_API_BASE=${LOCAL_API_BASE:-http://localhost:11434}
+      - LOCAL_API_BASE=${LOCAL_API_BASE:-http://host.docker.internal:11434}
       - LOCAL_MODEL_NAME=${LOCAL_MODEL_NAME:-llama3.2}
       - USE_OLLAMA=${USE_OLLAMA:-true}
     env_file:
@@ -32,12 +30,24 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: fallacy-detection-frontend
-    ports:
-      - "8001:80"
     environment:
-      - REACT_APP_WS_URL=${REACT_APP_WS_URL:-http://localhost:8000}
+      - REACT_APP_WS_URL=${REACT_APP_WS_URL:-http://localhost:8080}
     depends_on:
       - backend
+    networks:
+      - fallacy-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: fallacy-detection-nginx
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
     networks:
       - fallacy-network
     restart: unless-stopped

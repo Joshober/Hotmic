@@ -2,91 +2,140 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { FallacyDetection } from '../types';
 
-// Determine backend URL based on environment
-// Prioritize environment variable, then check if frontend is accessed via ngrok
-// Otherwise default to ngrok backend URL (public/live backend)
+// Socket.IO connects to base URL (will append /socket.io/ automatically)
+// REST API calls should use /api prefix
 const getBackendUrl = () => {
-  // Always check environment variable first
+  // Always check environment variable first (allows override for testing)
   if (process.env.REACT_APP_WS_URL) {
     return process.env.REACT_APP_WS_URL;
   }
-  // Check if frontend is accessed via ngrok
-  if (window.location.hostname.includes('ngrok-free.dev') || window.location.hostname.includes('ngrok.io')) {
-    // Frontend is on ngrok, use backend ngrok URL
-    return 'https://speak.ngrok.app';
-  }
-  // Default to ngrok backend URL (public/live backend)
-  return 'https://speak.ngrok.app';
+  // Default to localhost for local development
+  // For production/ngrok, set REACT_APP_WS_URL environment variable
+  return 'http://localhost:8000';
 };
 
 const WS_URL = getBackendUrl();
+
+// Global socket instance to prevent multiple connections
+let globalSocket: Socket | null = null;
+let globalListeners: Map<string, Set<(data: any) => void>> = new Map();
+
+const getOrCreateSocket = (): Socket => {
+  if (globalSocket?.connected) {
+    return globalSocket;
+  }
+
+  if (globalSocket) {
+    globalSocket.disconnect();
+  }
+
+  const socket = io(WS_URL, {
+    transports: ['polling', 'websocket'],  // Try polling first for ngrok compatibility
+    autoConnect: true,
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 5,
+    timeout: 20000,
+    forceNew: false,
+  });
+
+  socket.on('connect', () => {
+    console.log('Socket.IO connected');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Socket.IO disconnected');
+  });
+
+  socket.on('fallacy_detection', (data: FallacyDetection) => {
+    const listeners = globalListeners.get('fallacy_detection') || new Set();
+    listeners.forEach(listener => listener(data));
+  });
+
+  socket.on('pong', () => {
+    // Keep-alive response
+  });
+
+  socket.on('error', (error: any) => {
+    console.error('Socket.IO error:', error);
+    const listeners = globalListeners.get('error') || new Set();
+    listeners.forEach(listener => listener(error));
+  });
+
+  socket.on('connect_error', (error: Error) => {
+    console.error('Socket.IO connection error:', error);
+    const listeners = globalListeners.get('error') || new Set();
+    listeners.forEach(listener => listener(error));
+  });
+
+  globalSocket = socket;
+  return socket;
+};
 
 export const useWebSocket = (
   onMessage: (data: FallacyDetection) => void,
   onError?: (error: Event) => void
 ) => {
   const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
+  const onMessageRef = useRef(onMessage);
+  const onErrorRef = useRef(onError);
 
-  const connect = useCallback(() => {
-    if (socketRef.current?.connected) {
-      return;
-    }
-
-    try {
-      const socket = io(WS_URL, {
-        transports: ['polling', 'websocket'],  // Try polling first for ngrok compatibility
-        autoConnect: true,
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionAttempts: 5,
-        timeout: 20000,
-        forceNew: false,
-      });
-
-      socket.on('connect', () => {
-        console.log('Socket.IO connected');
-        setIsConnected(true);
-      });
-
-      socket.on('disconnect', () => {
-        console.log('Socket.IO disconnected');
-        setIsConnected(false);
-      });
-
-      socket.on('fallacy_detection', (data: FallacyDetection) => {
-        if (data.type === 'fallacy_detection') {
-          onMessage(data);
-        }
-      });
-
-      socket.on('pong', () => {
-        // Keep-alive response
-      });
-
-      socket.on('error', (error: any) => {
-        console.error('Socket.IO error:', error);
-        if (onError) {
-          onError(error as Event);
-        }
-      });
-
-      socket.on('connect_error', (error: Error) => {
-        console.error('Socket.IO connection error:', error);
-        if (onError) {
-          onError(error as any);
-        }
-      });
-
-      socketRef.current = socket;
-    } catch (error) {
-      console.error('Error creating Socket.IO connection:', error);
-    }
+  // Update refs when callbacks change
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onErrorRef.current = onError;
   }, [onMessage, onError]);
 
+  useEffect(() => {
+    const socket = getOrCreateSocket();
+
+    // Add listeners to global map
+    const messageHandler = (data: FallacyDetection) => {
+      if (data.type === 'fallacy_detection') {
+        onMessageRef.current(data);
+      }
+    };
+    const errorHandler = (error: Event) => {
+      if (onErrorRef.current) {
+        onErrorRef.current(error);
+      }
+    };
+
+    if (!globalListeners.has('fallacy_detection')) {
+      globalListeners.set('fallacy_detection', new Set());
+    }
+    if (!globalListeners.has('error')) {
+      globalListeners.set('error', new Set());
+    }
+
+    globalListeners.get('fallacy_detection')!.add(messageHandler);
+    globalListeners.get('error')!.add(errorHandler);
+
+    // Update connection status
+    const updateConnection = () => setIsConnected(socket.connected);
+    socket.on('connect', updateConnection);
+    socket.on('disconnect', updateConnection);
+    updateConnection(); // Set initial state
+
+    // Cleanup: remove listeners when component unmounts
+    return () => {
+      socket.off('connect', updateConnection);
+      socket.off('disconnect', updateConnection);
+      globalListeners.get('fallacy_detection')?.delete(messageHandler);
+      globalListeners.get('error')?.delete(errorHandler);
+      
+      // Only disconnect if no listeners remain
+      const hasListeners = Array.from(globalListeners.values()).some(listeners => listeners.size > 0);
+      if (!hasListeners && globalSocket) {
+        globalSocket.disconnect();
+        globalSocket = null;
+      }
+    };
+  }, []); // Empty deps - only run once per component mount
+
   const sendMessage = useCallback((text: string, speaker?: string) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit('message', {
+    if (globalSocket?.connected) {
+      globalSocket.emit('message', {
         type: 'text',
         text: text,
         speaker: speaker || undefined,
@@ -98,27 +147,20 @@ export const useWebSocket = (
   }, []);
 
   const disconnect = useCallback(() => {
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
+    if (globalSocket) {
+      globalSocket.disconnect();
+      globalSocket = null;
     }
     setIsConnected(false);
   }, []);
 
-  useEffect(() => {
-    connect();
-    return () => {
-      disconnect();
-    };
-  }, [connect, disconnect]);
-
   // Send ping every 30 seconds to keep connection alive
   useEffect(() => {
-    if (!isConnected || !socketRef.current) return;
+    if (!isConnected || !globalSocket?.connected) return;
     
     const pingInterval = setInterval(() => {
-      if (socketRef.current?.connected) {
-        socketRef.current.emit('message', { type: 'ping' });
+      if (globalSocket?.connected) {
+        globalSocket.emit('message', { type: 'ping' });
       }
     }, 30000);
 
